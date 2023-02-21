@@ -1,0 +1,141 @@
+#!/bin/dash
+
+# If commit has 2 arguments
+if [ "$#" -eq 2 ] 
+then
+    if ! [ "$1" = "-m" ]  
+    then
+        echo "usage: tigger-commit [-a] -m commit-message"
+        exit 1
+    fi
+    message=$2
+
+
+    # Finding out commit number
+    commNum=0
+    while [ -d ".tigger/commits/commit-$commNum" ] 
+    do
+        commNum=$((commNum + 1))        
+    done
+
+#    Checking if index directory is empty
+#     if ! [ "$(ls -A .tigger/index)" ]
+#     then
+#         echo "nothing to commit"
+#         exit 1
+#     fi
+
+    # Making sure index directory has changed
+    prevCommNum=$((commNum - 1))
+    if ! [ "$prevCommNum" -eq -1 ]
+    then 
+        diff -s .tigger/index/ ".tigger/commits/commit-$prevCommNum" 1> /dev/null
+        if [ "$?" -eq 0 ]
+        then
+            echo "nothing to commit"
+            exit 1
+        fi
+
+    fi
+
+
+    # Creating commit directory
+    mkdir ".tigger/commits/commit-$commNum"
+
+    if ! [ "$(ls -A .tigger/index)" ]
+    then
+        echo "$commNum $message">>.tigger/log.txt
+        echo "Committed as commit $commNum"
+        exit 1
+    else
+        # Copying all the files in index to the commit directory
+        for F in ".tigger/index"/*
+        do
+            # echo "$F"
+            # # fname=$(echo "$F" | cut -d '/' -f2)
+            cp "$F" .tigger/commits/commit-$commNum
+        done
+    fi
+
+    # Appending to log file
+    echo "$commNum $message">>.tigger/log.txt
+    echo "Committed as commit $commNum"
+
+
+# if commit has -a
+elif [ "$#" -eq 3 ] 
+then
+    if [ "$1" != "-a" ] || [ "$2" != '-m' ]  
+    then
+        echo "usage: tigger-commit [-a] -m commit-message"
+        exit 1
+    fi
+    message=$3
+
+    if ! [ "$(ls -A .tigger/index)" ]
+    then
+        echo "nothing to commit"
+        exit 1
+    fi
+
+    if ! [ "$(ls -A .tigger/index)" ]
+    then
+        echo "$commNum $message">>.tigger/log.txt
+        echo "Committed as commit $commNum"
+        exit 1
+    else
+        # Updating all files in index from current directory
+        for F in ".tigger/index"/*
+        do 
+            fname=$(echo "$F" | cut -d '/' -f3)
+            # echo $fname
+            cp "$fname" "$F"
+        done;
+    fi
+
+    # Finding out commit number
+    commNum=0
+    while [ -d ".tigger/commits/commit-$commNum" ] 
+    do
+        commNum=$((commNum + 1))        
+    done
+
+    # Making sure index directory has changed
+    prevCommNum=$((commNum - 1))
+    if ! [ "$prevCommNum" -eq -1 ]
+    then 
+        diff -s .tigger/index/ ".tigger/commits/commit-$prevCommNum" 1> /dev/null
+        if [ "$?" -eq 0 ]
+        then
+            echo "nothing to commit"
+            exit 1
+        fi
+    fi
+    
+    # Creating commit directory
+    mkdir ".tigger/commits/commit-$commNum"
+
+    # Copying all the files in index to the commit directory
+    for F in ".tigger/index"/*
+    do
+        # # echo "$F"
+        # fname=$(echo "$F" | cut -d '/' -f2)
+        cp "$F" .tigger/commits/commit-$commNum
+    done
+
+    # Appending to log file
+    echo "$commNum $message">>.tigger/log.txt
+    echo "Committed as commit $commNum"
+
+
+
+
+# If commit has incorrect number of arguments
+else 
+    echo "usage: tigger-commit [-a] -m commit-message"
+    exit 1
+fi
+
+
+
+

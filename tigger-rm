@@ -1,0 +1,151 @@
+#!/bin/dash
+
+# Looping through all arguments 
+for a in "$@"
+    do
+        if [ "$(echo "$a" | grep -E '^-')" ] 
+        then
+            if [ "$a" = "--force" ] || [ "$a" = "--cached" ]
+            then
+                continue
+            else
+                echo "usage: tigger-rm [--force] [--cached] <filenames>"
+                exit 1
+            fi
+        fi
+    done
+
+# Force and Cache
+if { [ "$1" = "--force" ] && [ "$2" = "--cached" ]; } || { [ "$2" = "--force" ] && [ "$1" = "--cached" ]; }
+then 
+    # Making sure that file names are given as well
+    if [ "$#" -eq 2 ] 
+    then
+        echo "usage: tigger-rm [--force] [--cached] <filenames>"
+        exit 1
+    fi
+    for f in "$@"
+    do
+        # Skipping arguments of --force and --cached
+        if [ "$f" = "--force" ] || [ "$f" = "--cached" ]
+        then
+            continue
+        else 
+            # Does file exist in index
+            if [ -f ".tigger/index/$f" ]
+            then
+                rm ".tigger/index/$f"
+            else 
+                echo "tigger-rm: error: '$f' is not in the tigger repository"
+            fi
+        fi
+
+    done
+
+    # echo fandc
+
+# Just force
+elif [ "$1" = "--force" ]
+then
+    # Making sure that file names are given as well
+    if [ "$#" -eq 1 ] 
+    then
+        echo "usage: tigger-rm [--force] [--cached] <filenames>"
+        exit 1
+    fi
+    for f in "$@"
+    do
+        # Skipping arguments of --force
+        if [ "$f" = "--force" ] 
+        then
+            continue
+        # Removing given files
+        else 
+            # Does file exist in index
+            if [ -f ".tigger/index/$f" ] 
+            then
+                rm ".tigger/index/$f"
+                if [ -f "$f" ] 
+                then
+                    rm "$f"
+                fi
+            else 
+                echo "tigger-rm: error: '$f' is not in the tigger repository"
+            fi
+        fi
+
+    done
+
+# Just cache
+elif [ "$1" = "--cached" ] 
+then
+    # Making sure that file names are given as well
+    if [ "$#" -eq 1 ] 
+    then
+        echo "usage: tigger-rm [--force] [--cached] <filenames>"
+        exit 1
+    fi
+    for f in "$@"
+    do
+
+        # Skipping arguments of --cached
+        if [ "$f" = "--cached" ] 
+        then
+            continue
+        # Removing given files
+        else 
+            # Does file exist in index
+            if [ -f ".tigger/index/$f" ] 
+            then
+                if [ -f "$f" ] 
+                then
+                    diff -s ".tigger/index/$f" "$f" 1> /dev/null
+                    if [ "$?" -eq 0 ]
+                    then
+                        rm ".tigger/index/$f"
+                    else
+                        echo "tigger-rm: error: '$f' in index is different to both the working file and the repository"
+                    fi
+                else
+                    rm ".tigger/index/$f"
+                fi
+                
+            else 
+                echo "tigger-rm: error: '$f' is not in the tigger repository"
+            fi
+        fi
+
+    done
+
+# Base case
+else   
+    for f in "$@"
+    do
+    # Does file exist in index
+        if [ -f ".tigger/index/$f" ] 
+        then
+            # Does file exist in folder
+            if [ -f "$f" ] 
+            then
+                # Is there a difference from file in index to folder
+                diff -s ".tigger/index/$f" "$f" 1> /dev/null
+                # Are files identical
+                if [ "$?" -eq 0 ]
+                then
+                    # Alright to delete
+                    rm ".tigger/index/$f"
+                    rm "$f"
+                else
+                    # File is different from index and folder
+                    echo "tigger-rm: error: '$f' in index is different to both the working file and the repository"
+                fi
+            else
+                # Removing only file from index
+                rm ".tigger/index/$f"
+            fi  
+        else 
+            # File doesnt exist
+            echo "tigger-rm: error: '$f' is not in the tigger repository"
+        fi
+    done
+fi

@@ -1,0 +1,47 @@
+#!/bin/dash
+
+# Check for no arguments 
+if ! [ "$#" -eq 1 ] 
+then 
+    echo "usage: tigger-show <commit>:<filename>"
+    exit 1
+fi
+
+commNum=$(echo "$1" | cut -d ':' -f1)
+fName=$(echo "$1" | cut -d ':' -f2)
+
+# If commNum is ommitted
+if [ -z "$commNum" ]
+then 
+    # If file doesn't exist
+    if ! [ -f ".tigger/index/$fName" ]
+    then
+        echo "tigger-show: error: '$fName' not found in index"
+        exit 1
+    else 
+        cat ".tigger/index/$fName"
+        exit 1
+    fi
+fi
+
+# If commNum doesnt exist
+if ! [ -d ".tigger/commits/commit-$commNum" ]
+then
+    echo "tigger-show: error: unknown commit '$commNum'"
+    exit 1
+fi
+
+
+# If file doesn't exist
+if ! [ -f ".tigger/commits/commit-$commNum/$fName" ]
+then
+    echo "tigger-show: error: '$fName' not found in commit $commNum"
+    exit 1
+# If file exists and is going to be printed
+else
+    cat ".tigger/commits/commit-$commNum/$fName"
+fi
+
+
+    
+

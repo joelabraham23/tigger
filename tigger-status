@@ -1,0 +1,12 @@
+#!/bin/dash
+
+if  ! [ "$#" -eq 0 ] 
+then 
+    echo "usage: tigger-status"
+    exit 1
+fi
+
+# Looping through directory
+
+
+# Looping through index

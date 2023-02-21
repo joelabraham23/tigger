@@ -1,0 +1,43 @@
+#!/bin/dash
+
+# Error check for no commands
+if [ "$#" -eq 0 ] 
+then 
+    echo "usage: tigger-add <filenames>"
+    exit 1
+fi
+
+# If tigger directory exists
+if ! [ -d .tigger ] 
+then 
+    echo "tigger-add: error: tigger repository directory .tigger not found"
+    exit 1
+fi
+
+# Making sure all files exist
+for f in "$@"
+do 
+    if [ -f ".tigger/index/$f" ]
+        then
+        # echo aaa
+        rm .tigger/index/"$f"
+    
+    elif ! [ -f "$f" ] 
+    then
+        echo "tigger-add: error: can not open '$f'"
+        exit 1
+    fi
+done
+
+
+# Looping through arguments to add to index
+for f in "$@"
+do 
+    if ! [ -f ".tigger/index/$f" ] && ! [ -f "$f" ]
+    then
+        continue
+    fi
+    cp "$f" ".tigger/index/$f"
+done
+
+

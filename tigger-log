@@ -1,0 +1,14 @@
+#!/bin/dash
+if  ! [ "$#" -eq 0 ] 
+then 
+    echo "usage: tigger-log"
+    exit 1
+fi
+
+if [ -d ".tigger" ] 
+then
+    tac .tigger/log.txt
+else 
+    echo "tigger-log: error: tigger repository directory .tigger not found"
+fi
+
